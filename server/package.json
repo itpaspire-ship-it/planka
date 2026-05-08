@@ -78,6 +78,7 @@
     "sails-hook-orm": "^4.0.3",
     "sails-hook-sockets": "^3.0.2",
     "sails-postgresql": "^5.0.1",
+    "sails-sqlserver": "^2.0.2",
     "serve-static": "^2.2.1",
     "sharp": "^0.34.5",
     "undici": "^7.24.0",
