@@ -3,6 +3,8 @@
  * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
  */
 
+const { buildUpdateQuery } = require('../helpers');
+
 const defaultFind = (criteria) => BackgroundImage.find(criteria).sort('id');
 
 /* Query methods */
@@ -81,7 +83,7 @@ const delete_ = (criteria) =>
         });
 
         queryValues.push(total);
-        query += `WHEN id IN (${inValues.join(', ')}) THEN $${queryValues.length}::int `;
+        query += `WHEN id IN (${inValues.join(', ')}) THEN CAST($${queryValues.length} AS INT) `;
       });
 
       query += 'END THEN NULL ELSE references_total - CASE ';
@@ -93,7 +95,7 @@ const delete_ = (criteria) =>
         });
 
         queryValues.push(total);
-        query += `WHEN id IN (${inValues.join(', ')}) THEN $${queryValues.length}::int `;
+        query += `WHEN id IN (${inValues.join(', ')}) THEN CAST($${queryValues.length} AS INT) `;
       });
 
       const inValues = Object.keys(backgroundImagesByUploadedFileId).map((uploadedFileId) => {
@@ -102,7 +104,14 @@ const delete_ = (criteria) =>
       });
 
       queryValues.push(new Date().toISOString());
-      query += `END END, updated_at = $${queryValues.length} WHERE id IN (${inValues.join(', ')}) AND references_total IS NOT NULL RETURNING *`;
+      query = buildUpdateQuery({
+        table: 'uploaded_file',
+        setClause: `${query.slice('UPDATE uploaded_file SET '.length)}END END, updated_at = $${
+          queryValues.length
+        }`,
+        whereClause: `id IN (${inValues.join(', ')}) AND references_total IS NOT NULL`,
+        returningColumns: '*',
+      });
 
       const queryResult = await sails.sendNativeQuery(query, queryValues).usingConnection(db);
       uploadedFiles = queryResult.rows.map((row) => UploadedFile.qm.transformRowToModel(row));
@@ -117,7 +126,13 @@ const deleteOne = (criteria) =>
 
     const queryResult = await sails
       .sendNativeQuery(
-        'UPDATE uploaded_file SET references_total = CASE WHEN references_total > 1 THEN references_total - 1 END, updated_at = $1 WHERE id = $2 RETURNING *',
+        buildUpdateQuery({
+          table: 'uploaded_file',
+          setClause:
+            'references_total = CASE WHEN references_total > 1 THEN references_total - 1 END, updated_at = $1',
+          whereClause: 'id = $2',
+          returningColumns: '*',
+        }),
         [new Date().toISOString(), backgroundImage.uploadedFileId],
       )
       .usingConnection(db);

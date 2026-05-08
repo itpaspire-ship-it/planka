@@ -1,4 +1,3 @@
-const POSTGRES_DIALECT = 'postgres';
 const MSSQL_DIALECT = 'mssql';
 const DEFAULT_MSSQL_SCHEMA = 'dbo';
 
@@ -11,14 +10,14 @@ const parseBoolean = (value) => {
 };
 
 const getDatabaseDialect = () => {
-  const dialect = (process.env.DATABASE_DIALECT || POSTGRES_DIALECT).toLowerCase();
+  const dialect = (process.env.DATABASE_DIALECT || MSSQL_DIALECT).toLowerCase();
 
-  if (dialect === POSTGRES_DIALECT || dialect === MSSQL_DIALECT) {
+  if (dialect === MSSQL_DIALECT) {
     return dialect;
   }
 
   throw new Error(
-    `Unsupported DATABASE_DIALECT "${process.env.DATABASE_DIALECT}". Expected "${POSTGRES_DIALECT}" or "${MSSQL_DIALECT}".`,
+    `Unsupported DATABASE_DIALECT "${process.env.DATABASE_DIALECT}". Expected "${MSSQL_DIALECT}".`,
   );
 };
 
@@ -27,16 +26,12 @@ const getSailsAdapter = () => {
     return process.env.DATABASE_ADAPTER;
   }
 
-  return getDatabaseDialect() === MSSQL_DIALECT ? 'sails-sqlserver' : 'sails-postgresql';
+  return 'sails-sqlserver';
 };
 
-const getKnexClient = () => (getDatabaseDialect() === MSSQL_DIALECT ? 'mssql' : 'pg');
+const getKnexClient = () => 'mssql';
 
 const getDatabaseSchema = () => {
-  if (getDatabaseDialect() !== MSSQL_DIALECT) {
-    return undefined;
-  }
-
   return process.env.DATABASE_SCHEMA || DEFAULT_MSSQL_SCHEMA;
 };
 
@@ -74,78 +69,36 @@ const buildDiscreteConnection = () => {
 
 const buildKnexConnection = () => {
   const discreteConnection = buildDiscreteConnection();
+  const connection = discreteConnection || process.env.DATABASE_URL;
+  const options = buildMssqlOptions();
 
-  if (getDatabaseDialect() === MSSQL_DIALECT) {
-    const connection = discreteConnection || process.env.DATABASE_URL;
-    const options = buildMssqlOptions();
+  if (Object.keys(options).length === 0) {
+    return connection;
+  }
 
-    if (Object.keys(options).length === 0) {
-      return connection;
-    }
-
-    if (discreteConnection) {
-      return {
-        ...discreteConnection,
-        options,
-      };
-    }
-
+  if (discreteConnection) {
     return {
-      connectionString: connection,
+      ...discreteConnection,
       options,
     };
   }
 
-  if (discreteConnection) {
-    if (process.env.KNEX_REJECT_UNAUTHORIZED_SSL_CERTIFICATE === 'false') {
-      return {
-        ...discreteConnection,
-        ssl: {
-          rejectUnauthorized: false,
-        },
-      };
-    }
-
-    return {
-      ...discreteConnection,
-      ssl: false,
-    };
-  }
-
-  if (process.env.KNEX_REJECT_UNAUTHORIZED_SSL_CERTIFICATE === 'false') {
-    return {
-      connectionString: process.env.DATABASE_URL,
-      ssl: {
-        rejectUnauthorized: false,
-      },
-    };
-  }
-
   return {
-    connectionString: process.env.DATABASE_URL,
-    ssl: false,
+    connectionString: connection,
+    options,
   };
 };
 
 const buildSailsDatastoreConfig = () => {
-  const dialect = getDatabaseDialect();
   const adapter = getSailsAdapter();
-
-  if (dialect === MSSQL_DIALECT) {
-    const discreteConnection = buildDiscreteConnection();
-
-    return {
-      adapter,
-      url: process.env.DATABASE_URL,
-      ...(discreteConnection || {}),
-      schemaName: getDatabaseSchema(),
-      options: buildMssqlOptions(),
-    };
-  }
+  const discreteConnection = buildDiscreteConnection();
 
   return {
     adapter,
     url: process.env.DATABASE_URL,
+    ...(discreteConnection || {}),
+    schemaName: getDatabaseSchema(),
+    options: buildMssqlOptions(),
   };
 };
 
@@ -158,5 +111,4 @@ module.exports = {
   getSailsAdapter,
   DEFAULT_MSSQL_SCHEMA,
   MSSQL_DIALECT,
-  POSTGRES_DIALECT,
 };

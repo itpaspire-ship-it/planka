@@ -20,21 +20,42 @@ const defaultFind = (criteria, { customFieldGroupIdOrIds } = {}) => {
 const create = (arrayOfValues) => CustomFieldValue.createEach(arrayOfValues).fetch();
 
 const createOrUpdateOne = async (values) => {
-  const query = `
-    INSERT INTO custom_field_value (card_id, custom_field_group_id, custom_field_id, content, created_at)
-    VALUES ($1, $2, $3, $4, $5)
-    ON CONFLICT (card_id, custom_field_group_id, custom_field_id)
-    DO UPDATE SET content = EXCLUDED.content, updated_at = EXCLUDED.created_at
-    RETURNING *
-  `;
-
-  const queryResult = await sails.sendNativeQuery(query, [
+  const queryValues = [
     values.cardId,
     values.customFieldGroupId,
     values.customFieldId,
     values.content,
     new Date().toISOString(),
-  ]);
+  ];
+
+  const query = `
+    MERGE custom_field_value WITH (HOLDLOCK) AS target
+    USING (
+      SELECT
+        $1 AS card_id,
+        $2 AS custom_field_group_id,
+        $3 AS custom_field_id,
+        $4 AS content,
+        $5 AS created_at
+    ) AS source
+    ON target.card_id = source.card_id
+      AND target.custom_field_group_id = source.custom_field_group_id
+      AND target.custom_field_id = source.custom_field_id
+    WHEN MATCHED THEN
+      UPDATE SET content = source.content, updated_at = source.created_at
+    WHEN NOT MATCHED THEN
+      INSERT (card_id, custom_field_group_id, custom_field_id, content, created_at)
+      VALUES (
+        source.card_id,
+        source.custom_field_group_id,
+        source.custom_field_id,
+        source.content,
+        source.created_at
+      )
+    OUTPUT inserted.*;
+  `;
+
+  const queryResult = await sails.sendNativeQuery(query, queryValues);
 
   return transformRowToModel(queryResult.rows[0]);
 };

@@ -49,7 +49,7 @@ const getByEndlessListId = async (listId, { before, search, userIds, labelIds })
     }
 
     const queryValues = [];
-    let query = 'SELECT DISTINCT card.* FROM card';
+    let query = `SELECT DISTINCT TOP ${LIMIT} card.* FROM card`;
 
     if (userIds) {
       query += ' LEFT JOIN card_membership ON card.id = card_membership.card_id';
@@ -74,18 +74,24 @@ const getByEndlessListId = async (listId, { before, search, userIds, labelIds })
 
     if (search) {
       if (search.startsWith('/')) {
-        queryValues.push(search.substring(1));
-        query += ` AND (card.name ~* $${queryValues.length} OR card.description ~* $${queryValues.length})`;
+        queryValues.push(`%${search.substring(1).toLowerCase()}%`);
+        query += ` AND (LOWER(card.name) LIKE $${queryValues.length} OR LOWER(card.description) LIKE $${queryValues.length})`;
       } else {
         const searchParts = buildSearchParts(search);
 
         if (searchParts.length > 0) {
-          const ilikeValues = searchParts.map((searchPart) => {
-            queryValues.push(searchPart);
-            return `'%' || $${queryValues.length} || '%'`;
+          const nameConditions = [];
+          const descriptionConditions = [];
+
+          searchParts.forEach((searchPart) => {
+            queryValues.push(`%${searchPart}%`);
+            nameConditions.push(`LOWER(card.name) LIKE $${queryValues.length}`);
+            descriptionConditions.push(`LOWER(card.description) LIKE $${queryValues.length}`);
           });
 
-          query += ` AND ((card.name ILIKE ALL(ARRAY[${ilikeValues.join(', ')}])) OR (card.description ILIKE ALL(ARRAY[${ilikeValues.join(', ')}])))`;
+          query += ` AND ((${nameConditions.join(' AND ')}) OR (${descriptionConditions.join(
+            ' AND ',
+          )}))`;
         }
       }
     }
@@ -108,19 +114,10 @@ const getByEndlessListId = async (listId, { before, search, userIds, labelIds })
       query += ` AND card_label.label_id IN (${inValues.join(', ')})`;
     }
 
-    query += ` LIMIT ${LIMIT}`;
-
     let queryResult;
     try {
       queryResult = await sails.sendNativeQuery(query, queryValues);
     } catch (error) {
-      if (
-        error.code === 'E_QUERY_FAILED' &&
-        error.message.includes('Query failed: invalid regular expression')
-      ) {
-        return [];
-      }
-
       throw error;
     }
 

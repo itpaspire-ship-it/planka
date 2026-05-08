@@ -3,7 +3,11 @@
  * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
  */
 
-const { makeRowToModelTransformer, makeWhereQueryBuilder } = require('../helpers');
+const {
+  buildLockedSelectQuery,
+  makeRowToModelTransformer,
+  makeWhereQueryBuilder,
+} = require('../helpers');
 
 const buildWhereQuery = makeWhereQueryBuilder(List);
 const transformRowToModel = makeRowToModelTransformer(List);
@@ -59,7 +63,12 @@ const updateOne = async (criteria, values) => {
 
       const queryResult = await sails
         .sendNativeQuery(
-          `SELECT board_id, type FROM list WHERE ${whereQuery} LIMIT 1 FOR UPDATE`,
+          buildLockedSelectQuery({
+            table: 'list',
+            columns: 'board_id, type',
+            whereClause: whereQuery,
+            one: true,
+          }),
           whereQueryValues,
         )
         .usingConnection(db);

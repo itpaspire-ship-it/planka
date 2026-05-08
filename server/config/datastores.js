@@ -17,13 +17,7 @@ const pg = require('pg');
 
 const {
   buildSailsDatastoreConfig,
-  getDatabaseDialect,
-  POSTGRES_DIALECT,
 } = require('../utils/database');
-
-if (getDatabaseDialect() === POSTGRES_DIALECT) {
-  pg.types.setTypeParser(pg.types.builtins.TIMESTAMP, (value) => new Date(`${value}Z`));
-}
 
 module.exports.datastores = {
   /**

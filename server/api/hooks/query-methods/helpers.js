@@ -38,7 +38,28 @@ const makeRowToModelTransformer = (Model) => {
   return (row) => _.mapKeys(row, (_, key) => transformations[key]);
 };
 
+const buildLockedSelectQuery = ({ table, columns, whereClause, one = false }) => {
+  return `SELECT ${one ? 'TOP 1 ' : ''}${columns} FROM ${table} WITH (UPDLOCK, ROWLOCK) WHERE ${whereClause}`;
+};
+
+const buildUpdateQuery = ({ table, setClause, whereClause, returningColumns }) => {
+  const outputClause = returningColumns
+    ? ` OUTPUT ${
+        returningColumns === '*'
+          ? 'inserted.*'
+          : returningColumns
+              .split(',')
+              .map((column) => `inserted.${column.trim()}`)
+              .join(', ')
+      }`
+    : '';
+
+  return `UPDATE ${table} SET ${setClause}${outputClause} WHERE ${whereClause}`;
+};
+
 module.exports = {
+  buildLockedSelectQuery,
+  buildUpdateQuery,
   makeWhereQueryBuilder,
   makeRowToModelTransformer,
 };
