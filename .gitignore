@@ -3,6 +3,7 @@ docker-compose.override.yml
 .DS_Store
 
 node_modules
+server/.env
 
 # Prevent another lockfile than package-lock.json (npm) from being created
 # If some case you are using pnpm or yarn, don't forget to generate npm lockfile
