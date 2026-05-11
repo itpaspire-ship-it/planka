@@ -5,6 +5,7 @@
 
 const {
   buildLockedSelectQuery,
+  getNativeRows,
   makeRowToModelTransformer,
   makeWhereQueryBuilder,
 } = require('../helpers');
@@ -77,7 +78,7 @@ const updateOne = async (criteria, values) => {
         return { list: null };
       }
 
-      const prev = transformRowToModel(queryResult.rows[0]);
+      const prev = transformRowToModel(getNativeRows(queryResult)[0]);
 
       const list = await List.updateOne(criteria)
         .set({ ...values })

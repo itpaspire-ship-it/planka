@@ -4,7 +4,7 @@
  */
 
 const buildSearchParts = require('../../../../utils/build-query-parts');
-const { makeRowToModelTransformer } = require('../helpers');
+const { getNativeRows, makeRowToModelTransformer } = require('../helpers');
 
 const LIMIT = 50;
 
@@ -121,7 +121,7 @@ const getByEndlessListId = async (listId, { before, search, userIds, labelIds })
       throw error;
     }
 
-    return queryResult.rows.map((row) => transformRowToModel(row));
+    return getNativeRows(queryResult).map((row) => transformRowToModel(row));
   }
 
   const criteria = {

@@ -4,7 +4,7 @@
  */
 
 // TODO: refactor?
-const { buildUpdateQuery } = require('../helpers');
+const { buildUpdateQuery, getNativeRows } = require('../helpers');
 
 const defaultFind = (criteria) => Attachment.find(criteria).sort('id');
 
@@ -55,7 +55,7 @@ const create = (arrayOfValues) => {
       });
 
       const queryResult = await sails.sendNativeQuery(query, queryValues).usingConnection(db);
-      const nextUploadedFileIds = sails.helpers.utils.mapRecords(queryResult.rows);
+      const nextUploadedFileIds = sails.helpers.utils.mapRecords(getNativeRows(queryResult));
 
       if (nextUploadedFileIds.length < uploadedFileIds.length) {
         const nextUploadedFileIdsSet = new Set(nextUploadedFileIds);
@@ -187,7 +187,9 @@ const delete_ = (criteria) =>
       });
 
       const queryResult = await sails.sendNativeQuery(query, queryValues).usingConnection(db);
-      uploadedFiles = queryResult.rows.map((row) => UploadedFile.qm.transformRowToModel(row));
+      uploadedFiles = getNativeRows(queryResult).map((row) =>
+        UploadedFile.qm.transformRowToModel(row),
+      );
     }
 
     return { attachments, uploadedFiles };
@@ -212,7 +214,7 @@ const deleteOne = (criteria) =>
         )
         .usingConnection(db);
 
-      uploadedFile = UploadedFile.qm.transformRowToModel(queryResult.rows[0]);
+      uploadedFile = UploadedFile.qm.transformRowToModel(getNativeRows(queryResult)[0]);
     }
 
     return { attachment, uploadedFile };

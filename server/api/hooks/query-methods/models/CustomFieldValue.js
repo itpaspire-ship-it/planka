@@ -3,7 +3,7 @@
  * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
  */
 
-const { makeRowToModelTransformer } = require('../helpers');
+const { getNativeRows, makeRowToModelTransformer } = require('../helpers');
 
 const transformRowToModel = makeRowToModelTransformer(CustomFieldValue);
 
@@ -57,7 +57,7 @@ const createOrUpdateOne = async (values) => {
 
   const queryResult = await sails.sendNativeQuery(query, queryValues);
 
-  return transformRowToModel(queryResult.rows[0]);
+  return transformRowToModel(getNativeRows(queryResult)[0]);
 };
 
 const getByIds = (ids) => defaultFind(ids);

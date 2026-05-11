@@ -3,7 +3,7 @@
  * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
  */
 
-const { buildUpdateQuery } = require('../helpers');
+const { buildUpdateQuery, getNativeRows } = require('../helpers');
 
 const defaultFind = (criteria) => BackgroundImage.find(criteria).sort('id');
 
@@ -114,7 +114,9 @@ const delete_ = (criteria) =>
       });
 
       const queryResult = await sails.sendNativeQuery(query, queryValues).usingConnection(db);
-      uploadedFiles = queryResult.rows.map((row) => UploadedFile.qm.transformRowToModel(row));
+      uploadedFiles = getNativeRows(queryResult).map((row) =>
+        UploadedFile.qm.transformRowToModel(row),
+      );
     }
 
     return { backgroundImages, uploadedFiles };
@@ -137,7 +139,7 @@ const deleteOne = (criteria) =>
       )
       .usingConnection(db);
 
-    const uploadedFile = UploadedFile.qm.transformRowToModel(queryResult.rows[0]);
+    const uploadedFile = UploadedFile.qm.transformRowToModel(getNativeRows(queryResult)[0]);
 
     return { backgroundImage, uploadedFile };
   });

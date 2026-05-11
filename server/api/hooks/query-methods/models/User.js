@@ -6,6 +6,7 @@
 const {
   buildLockedSelectQuery,
   buildUpdateQuery,
+  getNativeRows,
   makeRowToModelTransformer,
   makeWhereQueryBuilder,
 } = require('../helpers');
@@ -151,7 +152,7 @@ const updateOne = async (criteria, values) => {
           return { user: null };
         }
 
-        prev = transformRowToModel(queryResult.rows[0]);
+        prev = transformRowToModel(getNativeRows(queryResult)[0]);
       }
 
       const user = await User.updateOne(criteria)
@@ -174,7 +175,7 @@ const updateOne = async (criteria, values) => {
             )
             .usingConnection(db);
 
-          uploadedFile = UploadedFile.qm.transformRowToModel(queryResult.rows[0]);
+          uploadedFile = UploadedFile.qm.transformRowToModel(getNativeRows(queryResult)[0]);
         }
 
         if (user.avatar) {
@@ -218,7 +219,7 @@ const deleteOne = (criteria) =>
         )
         .usingConnection(db);
 
-      uploadedFile = UploadedFile.qm.transformRowToModel(queryResult.rows[0]);
+      uploadedFile = UploadedFile.qm.transformRowToModel(getNativeRows(queryResult)[0]);
     }
 
     return { user, uploadedFile };

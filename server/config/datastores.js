@@ -13,8 +13,6 @@
  * https://sailsjs.com/config/datastores
  */
 
-const pg = require('pg');
-
 const {
   buildSailsDatastoreConfig,
 } = require('../utils/database');

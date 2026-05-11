@@ -1,5 +1,6 @@
 const MSSQL_DIALECT = 'mssql';
 const DEFAULT_MSSQL_SCHEMA = 'dbo';
+const sailsSqlServerAdapter = require('../adapters/sails-sqlserver');
 
 const parseBoolean = (value) => {
   if (value === undefined) {
@@ -26,7 +27,7 @@ const getSailsAdapter = () => {
     return process.env.DATABASE_ADAPTER;
   }
 
-  return 'sails-sqlserver';
+  return sailsSqlServerAdapter;
 };
 
 const getKnexClient = () => 'mssql';

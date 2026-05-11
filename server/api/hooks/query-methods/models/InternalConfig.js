@@ -6,6 +6,7 @@
 const {
   buildLockedSelectQuery,
   buildUpdateQuery,
+  getNativeRows,
   makeRowToModelTransformer,
 } = require('../helpers');
 
@@ -29,7 +30,7 @@ const updateOneMain = (values) =>
       )
       .usingConnection(db);
 
-    const prev = transformRowToModel(queryResult.rows[0]);
+    const prev = transformRowToModel(getNativeRows(queryResult)[0]);
 
     const internalConfig = await InternalConfig.updateOne(InternalConfig.MAIN_ID)
       .set({ ...values })
@@ -67,7 +68,7 @@ const updateOneMain = (values) =>
       `;
 
       queryResult = await sails.sendNativeQuery(query, queryValues).usingConnection(db);
-      deactivatedUserIds = queryResult.rows.map((row) => row.id);
+      deactivatedUserIds = getNativeRows(queryResult).map((row) => row.id);
     }
 
     return { internalConfig, deactivatedUserIds, prev };
