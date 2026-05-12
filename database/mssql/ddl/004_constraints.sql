@@ -28,13 +28,20 @@ BEGIN
 END;
 GO
 
+/*
+  API keys are optional. In MSSQL, a plain UNIQUE constraint only allows a
+  single NULL value, so use a filtered unique index instead.
+*/
 IF NOT EXISTS (
-  SELECT 1 FROM sys.key_constraints
+  SELECT 1
+  FROM sys.indexes
   WHERE name = 'UQ_user_account_api_key_hash'
-    AND parent_object_id = OBJECT_ID(N'planka.[user_account]')
+    AND object_id = OBJECT_ID(N'planka.[user_account]')
 )
 BEGIN
-  ALTER TABLE planka.[user_account] ADD CONSTRAINT UQ_user_account_api_key_hash UNIQUE (api_key_hash);
+  CREATE UNIQUE INDEX UQ_user_account_api_key_hash
+    ON planka.[user_account] (api_key_hash)
+    WHERE api_key_hash IS NOT NULL;
 END;
 GO
 

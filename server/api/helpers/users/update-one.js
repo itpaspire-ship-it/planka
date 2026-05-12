@@ -67,7 +67,7 @@ module.exports = {
       }
 
       values.password = await bcrypt.hash(values.password, 10);
-      values.passwordChangedAt = new Date().toUTCString(); // FIXME: hack
+      values.passwordChangedAt = new Date().toISOString();
     }
 
     if (values.username) {
