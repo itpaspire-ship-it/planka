@@ -66,7 +66,7 @@ jobs:
 
       - uses: anthropics/claude-code-action@v1
         with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # Bypass the OIDC -> Claude GitHub App token exchange. That exchange
           # rejects OIDC tokens minted for pull_request_target events with
           # "401 Invalid OIDC token", which broke every review after the switch
