@@ -78,7 +78,7 @@ const delete_ = (criteria) =>
         });
 
         queryValues.push(total);
-        query += `WHEN id IN (${inValues.join(', ')}) THEN $${queryValues.length}::int `;
+        query += `WHEN id IN (${inValues.join(', ')}) THEN CAST($${queryValues.length} AS INT) `;
       });
 
       const inValues = Object.keys(commentsByCardId).map((cardId) => {

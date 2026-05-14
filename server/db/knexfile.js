@@ -7,27 +7,16 @@ const path = require('path');
 const dotenv = require('dotenv');
 const _ = require('lodash');
 
+const { buildKnexConnection, getKnexClient } = require('../utils/database');
+
 dotenv.config({
   path: path.resolve(__dirname, '../.env'),
   quiet: true,
 });
 
-function buildSSLConfig() {
-  if (process.env.KNEX_REJECT_UNAUTHORIZED_SSL_CERTIFICATE === 'false') {
-    return {
-      rejectUnauthorized: false,
-    };
-  }
-
-  return false;
-}
-
 module.exports = {
-  client: 'pg',
-  connection: {
-    connectionString: process.env.DATABASE_URL,
-    ssl: buildSSLConfig(),
-  },
+  client: getKnexClient(),
+  connection: buildKnexConnection(),
   migrations: {
     tableName: 'migration',
     directory: path.join(__dirname, 'migrations'),

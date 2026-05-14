@@ -5,7 +5,6 @@
 
 const fsPromises = require('fs').promises;
 const { rimraf } = require('rimraf');
-const { fileTypeFromFile } = require('file-type');
 const { getEncoding } = require('istextorbinary');
 const sharp = require('sharp');
 
@@ -22,6 +21,7 @@ module.exports = {
 
   async fn(inputs) {
     const fileManager = sails.hooks['file-manager'].getInstance();
+    const { fileTypeFromFile } = await import('file-type');
 
     const filename = filenamify(inputs.file.filename);
     const fileType = await fileTypeFromFile(inputs.file.fd);

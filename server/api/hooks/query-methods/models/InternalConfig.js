@@ -3,7 +3,12 @@
  * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
  */
 
-const { makeRowToModelTransformer } = require('../helpers');
+const {
+  buildLockedSelectQuery,
+  buildUpdateQuery,
+  getNativeRows,
+  makeRowToModelTransformer,
+} = require('../helpers');
 
 const transformRowToModel = makeRowToModelTransformer(InternalConfig);
 
@@ -15,12 +20,17 @@ const updateOneMain = (values) =>
   sails.getDatastore().transaction(async (db) => {
     let queryResult = await sails
       .sendNativeQuery(
-        'SELECT active_users_limit FROM internal_config WHERE id = $1 LIMIT 1 FOR UPDATE',
+        buildLockedSelectQuery({
+          table: 'internal_config',
+          columns: 'active_users_limit',
+          whereClause: 'id = $1',
+          one: true,
+        }),
         [InternalConfig.MAIN_ID],
       )
       .usingConnection(db);
 
-    const prev = transformRowToModel(queryResult.rows[0]);
+    const prev = transformRowToModel(getNativeRows(queryResult)[0]);
 
     const internalConfig = await InternalConfig.updateOne(InternalConfig.MAIN_ID)
       .set({ ...values })
@@ -32,29 +42,33 @@ const updateOneMain = (values) =>
       (prev.activeUsersLimit === null || internalConfig.activeUsersLimit < prev.activeUsersLimit)
     ) {
       const { defaultAdminEmail } = sails.config.custom;
+      const queryValues = defaultAdminEmail
+        ? [defaultAdminEmail, User.Roles.ADMIN, internalConfig.activeUsersLimit, false, true]
+        : [User.Roles.ADMIN, internalConfig.activeUsersLimit, false, true];
+      const activeUsersLimitIndex = defaultAdminEmail ? 3 : 2;
+      const deactivatedValuePlaceholder = `$${defaultAdminEmail ? 4 : 3}`;
+      const activatedValuePlaceholder = `$${defaultAdminEmail ? 5 : 4}`;
 
-      const query = `
+      let query = `
         WITH user_to_deactivate AS (
           SELECT id
           FROM user_account
-          WHERE is_deactivated = false
+          WHERE is_deactivated = ${deactivatedValuePlaceholder}
           ORDER BY
             CASE ${defaultAdminEmail ? 'WHEN email = $1 THEN 0 WHEN role = $2 THEN 1' : 'WHEN role = $1 THEN 0'} ELSE ${defaultAdminEmail ? '2' : '1'} END,
             id
-          OFFSET $${defaultAdminEmail ? 3 : 2}
+          OFFSET $${activeUsersLimitIndex} ROWS
         )
-        UPDATE user_account
-        SET is_deactivated = true
-        WHERE id IN (SELECT id FROM user_to_deactivate)
-        RETURNING id
+        ${buildUpdateQuery({
+          table: 'user_account',
+          setClause: `is_deactivated = ${activatedValuePlaceholder}`,
+          whereClause: 'id IN (SELECT id FROM user_to_deactivate)',
+          returningColumns: 'id',
+        })}
       `;
 
-      const queryValues = defaultAdminEmail
-        ? [defaultAdminEmail, User.Roles.ADMIN, internalConfig.activeUsersLimit]
-        : [User.Roles.ADMIN, internalConfig.activeUsersLimit];
-
       queryResult = await sails.sendNativeQuery(query, queryValues).usingConnection(db);
-      deactivatedUserIds = queryResult.rows.map((row) => row.id);
+      deactivatedUserIds = getNativeRows(queryResult).map((row) => row.id);
     }
 
     return { internalConfig, deactivatedUserIds, prev };

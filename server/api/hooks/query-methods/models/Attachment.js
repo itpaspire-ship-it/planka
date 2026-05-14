@@ -4,6 +4,7 @@
  */
 
 // TODO: refactor?
+const { buildUpdateQuery, getNativeRows } = require('../helpers');
 
 const defaultFind = (criteria) => Attachment.find(criteria).sort('id');
 
@@ -35,7 +36,7 @@ const create = (arrayOfValues) => {
         });
 
         queryValues.push(total);
-        query += `WHEN id IN (${inValues.join(', ')}) THEN $${queryValues.length}::int `;
+        query += `WHEN id IN (${inValues.join(', ')}) THEN CAST($${queryValues.length} AS INT) `;
       });
 
       const inValues = uploadedFileIds.map((uploadedFileId) => {
@@ -44,10 +45,17 @@ const create = (arrayOfValues) => {
       });
 
       queryValues.push(new Date().toISOString());
-      query += `END, updated_at = $${queryValues.length} WHERE id IN (${inValues.join(', ')}) AND references_total IS NOT NULL RETURNING id`;
+      query = buildUpdateQuery({
+        table: 'uploaded_file',
+        setClause: `${query.slice('UPDATE uploaded_file SET '.length)}END, updated_at = $${
+          queryValues.length
+        }`,
+        whereClause: `id IN (${inValues.join(', ')}) AND references_total IS NOT NULL`,
+        returningColumns: 'id',
+      });
 
       const queryResult = await sails.sendNativeQuery(query, queryValues).usingConnection(db);
-      const nextUploadedFileIds = sails.helpers.utils.mapRecords(queryResult.rows);
+      const nextUploadedFileIds = sails.helpers.utils.mapRecords(getNativeRows(queryResult));
 
       if (nextUploadedFileIds.length < uploadedFileIds.length) {
         const nextUploadedFileIdsSet = new Set(nextUploadedFileIds);
@@ -148,7 +156,7 @@ const delete_ = (criteria) =>
         });
 
         queryValues.push(total);
-        query += `WHEN id IN (${inValues.join(', ')}) THEN $${queryValues.length}::int `;
+        query += `WHEN id IN (${inValues.join(', ')}) THEN CAST($${queryValues.length} AS INT) `;
       });
 
       query += 'END THEN NULL ELSE references_total - CASE ';
@@ -160,7 +168,7 @@ const delete_ = (criteria) =>
         });
 
         queryValues.push(total);
-        query += `WHEN id IN (${inValues.join(', ')}) THEN $${queryValues.length}::int `;
+        query += `WHEN id IN (${inValues.join(', ')}) THEN CAST($${queryValues.length} AS INT) `;
       });
 
       const inValues = Object.keys(attachmentsByUploadedFileId).map((uploadedFileId) => {
@@ -169,10 +177,19 @@ const delete_ = (criteria) =>
       });
 
       queryValues.push(new Date().toISOString());
-      query += `END END, updated_at = $${queryValues.length} WHERE id IN (${inValues.join(', ')}) AND references_total IS NOT NULL RETURNING *`;
+      query = buildUpdateQuery({
+        table: 'uploaded_file',
+        setClause: `${query.slice('UPDATE uploaded_file SET '.length)}END END, updated_at = $${
+          queryValues.length
+        }`,
+        whereClause: `id IN (${inValues.join(', ')}) AND references_total IS NOT NULL`,
+        returningColumns: '*',
+      });
 
       const queryResult = await sails.sendNativeQuery(query, queryValues).usingConnection(db);
-      uploadedFiles = queryResult.rows.map((row) => UploadedFile.qm.transformRowToModel(row));
+      uploadedFiles = getNativeRows(queryResult).map((row) =>
+        UploadedFile.qm.transformRowToModel(row),
+      );
     }
 
     return { attachments, uploadedFiles };
@@ -186,12 +203,18 @@ const deleteOne = (criteria) =>
     if (attachment.type === Attachment.Types.FILE) {
       const queryResult = await sails
         .sendNativeQuery(
-          'UPDATE uploaded_file SET references_total = CASE WHEN references_total > 1 THEN references_total - 1 END, updated_at = $1 WHERE id = $2 RETURNING *',
+          buildUpdateQuery({
+            table: 'uploaded_file',
+            setClause:
+              'references_total = CASE WHEN references_total > 1 THEN references_total - 1 END, updated_at = $1',
+            whereClause: 'id = $2',
+            returningColumns: '*',
+          }),
           [new Date().toISOString(), attachment.data.uploadedFileId],
         )
         .usingConnection(db);
 
-      uploadedFile = UploadedFile.qm.transformRowToModel(queryResult.rows[0]);
+      uploadedFile = UploadedFile.qm.transformRowToModel(getNativeRows(queryResult)[0]);
     }
 
     return { attachment, uploadedFile };

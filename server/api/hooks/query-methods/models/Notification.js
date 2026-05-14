@@ -21,17 +21,20 @@ const create = (arrayOfValues) =>
         return `$${queryValues.length}`;
       });
 
+      const unreadValuePlaceholder = `$${queryValues.push(false)}`;
       queryValues.push(LIMIT);
+      const limitPlaceholder = `$${queryValues.length}`;
+      const readValuePlaceholder = `$${queryValues.push(true)}`;
 
       const query = `
         WITH exceeded_notification AS (
           SELECT id, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY id DESC) AS rank
           FROM notification
-          WHERE user_id IN (${inValues.join(', ')}) AND is_read = FALSE
+          WHERE user_id IN (${inValues.join(', ')}) AND is_read = ${unreadValuePlaceholder}
         )
         UPDATE notification
-        SET is_read = TRUE
-        WHERE id IN (SELECT id FROM exceeded_notification WHERE rank > $${queryValues.length})
+        SET is_read = ${readValuePlaceholder}
+        WHERE id IN (SELECT id FROM exceeded_notification WHERE rank > ${limitPlaceholder})
       `;
 
       await sails.sendNativeQuery(query, queryValues).usingConnection(db);
@@ -47,20 +50,22 @@ const createOne = (values) => {
         .fetch()
         .usingConnection(db);
 
+      const unreadValuePlaceholder = '$3';
+      const readValuePlaceholder = '$4';
       const query = `
         WITH exceeded_notification AS (
           SELECT id
           FROM notification
-          WHERE user_id = $1 AND is_read = FALSE
+          WHERE user_id = $1 AND is_read = ${unreadValuePlaceholder}
           ORDER BY id DESC
-          OFFSET $2
+          OFFSET $2 ROWS
         )
         UPDATE notification
-        SET is_read = TRUE
+        SET is_read = ${readValuePlaceholder}
         WHERE id IN (SELECT id FROM exceeded_notification)
       `;
 
-      await sails.sendNativeQuery(query, [values.userId, LIMIT]).usingConnection(db);
+      await sails.sendNativeQuery(query, [values.userId, LIMIT, false, true]).usingConnection(db);
 
       return notification;
     });

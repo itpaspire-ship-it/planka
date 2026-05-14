@@ -3,7 +3,13 @@
  * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
  */
 
-const { makeRowToModelTransformer, makeWhereQueryBuilder } = require('../helpers');
+const {
+  buildLockedSelectQuery,
+  buildUpdateQuery,
+  getNativeRows,
+  makeRowToModelTransformer,
+  makeWhereQueryBuilder,
+} = require('../helpers');
 
 const hasAvatarChanged = (avatar, prevAvatar) => {
   if (!avatar && !prevAvatar) {
@@ -30,9 +36,14 @@ const createOne = async (values) => {
   if (activeUsersLimit !== null) {
     return sails.getDatastore().transaction(async (db) => {
       const queryResult = await sails
-        .sendNativeQuery('SELECT NULL FROM user_account WHERE is_deactivated = $1 FOR UPDATE', [
-          false,
-        ])
+        .sendNativeQuery(
+          buildLockedSelectQuery({
+            table: 'user_account',
+            columns: 'NULL',
+            whereClause: 'is_deactivated = $1',
+          }),
+          [false],
+        )
         .usingConnection(db);
 
       if (queryResult.rowCount >= activeUsersLimit) {
@@ -106,9 +117,14 @@ const updateOne = async (criteria, values) => {
     return sails.getDatastore().transaction(async (db) => {
       if (enforceActiveLimit) {
         const queryResult = await sails
-          .sendNativeQuery('SELECT NULL FROM user_account WHERE is_deactivated = $1 FOR UPDATE', [
-            false,
-          ])
+          .sendNativeQuery(
+            buildLockedSelectQuery({
+              table: 'user_account',
+              columns: 'NULL',
+              whereClause: 'is_deactivated = $1',
+            }),
+            [false],
+          )
           .usingConnection(db);
 
         if (queryResult.rowCount >= activeUsersLimit) {
@@ -122,7 +138,12 @@ const updateOne = async (criteria, values) => {
 
         const queryResult = await sails
           .sendNativeQuery(
-            `SELECT avatar FROM user_account WHERE ${whereQuery} LIMIT 1 FOR UPDATE`,
+            buildLockedSelectQuery({
+              table: 'user_account',
+              columns: 'avatar',
+              whereClause: whereQuery,
+              one: true,
+            }),
             whereQueryValues,
           )
           .usingConnection(db);
@@ -131,7 +152,7 @@ const updateOne = async (criteria, values) => {
           return { user: null };
         }
 
-        prev = transformRowToModel(queryResult.rows[0]);
+        prev = transformRowToModel(getNativeRows(queryResult)[0]);
       }
 
       const user = await User.updateOne(criteria)
@@ -143,12 +164,18 @@ const updateOne = async (criteria, values) => {
         if (prev.avatar) {
           const queryResult = await sails
             .sendNativeQuery(
-              'UPDATE uploaded_file SET references_total = CASE WHEN references_total > 1 THEN references_total - 1 END, updated_at = $1 WHERE id = $2 RETURNING *',
+              buildUpdateQuery({
+                table: 'uploaded_file',
+                setClause:
+                  'references_total = CASE WHEN references_total > 1 THEN references_total - 1 END, updated_at = $1',
+                whereClause: 'id = $2',
+                returningColumns: '*',
+              }),
               [new Date().toISOString(), prev.avatar.uploadedFileId],
             )
             .usingConnection(db);
 
-          uploadedFile = UploadedFile.qm.transformRowToModel(queryResult.rows[0]);
+          uploadedFile = UploadedFile.qm.transformRowToModel(getNativeRows(queryResult)[0]);
         }
 
         if (user.avatar) {
@@ -181,12 +208,18 @@ const deleteOne = (criteria) =>
     if (user.avatar) {
       const queryResult = await sails
         .sendNativeQuery(
-          'UPDATE uploaded_file SET references_total = CASE WHEN references_total > 1 THEN references_total - 1 END, updated_at = $1 WHERE id = $2 RETURNING *',
+          buildUpdateQuery({
+            table: 'uploaded_file',
+            setClause:
+              'references_total = CASE WHEN references_total > 1 THEN references_total - 1 END, updated_at = $1',
+            whereClause: 'id = $2',
+            returningColumns: '*',
+          }),
           [new Date().toISOString(), user.avatar.uploadedFileId],
         )
         .usingConnection(db);
 
-      uploadedFile = UploadedFile.qm.transformRowToModel(queryResult.rows[0]);
+      uploadedFile = UploadedFile.qm.transformRowToModel(getNativeRows(queryResult)[0]);
     }
 
     return { user, uploadedFile };
