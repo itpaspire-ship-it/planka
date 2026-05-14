@@ -147,6 +147,7 @@ BEGIN
     [position] FLOAT(53) NULL,
     [name] NVARCHAR(255) NOT NULL,
     [description] NVARCHAR(MAX) NULL,
+    pms_id NVARCHAR(255) NULL,
     due_date DATETIME2(3) NULL,
     stopwatch NVARCHAR(MAX) NULL,
     created_at DATETIME2(3) NULL,
@@ -156,6 +157,12 @@ BEGIN
     is_closed BIT NOT NULL,
     is_due_completed BIT NULL
   );
+END;
+GO
+
+IF COL_LENGTH(N'planka.card', N'pms_id') IS NULL
+BEGIN
+  ALTER TABLE planka.[card] ADD pms_id NVARCHAR(255) NULL;
 END;
 GO
 
