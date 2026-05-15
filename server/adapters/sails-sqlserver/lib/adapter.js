@@ -164,8 +164,7 @@ var util = {
       value = value.toString();
     }
     if (_.isString(value)) {
-      util.escape({ value });
-      value = `'${value}'`
+      value = `'${util.escape({ value })}'`
     }
     if (_.isArray(value)) {
       value = _.without(value, undefined);
@@ -180,8 +179,7 @@ var util = {
     return value;
   },
   escape: function escape(options) {
-    var value = options.value;
-    value = value.replace(/'/g, `''`);
+    return options.value.replace(/'/g, `''`);
   },
   toSqlDate: function toSqlDate(options) {
     var date = options.date;
