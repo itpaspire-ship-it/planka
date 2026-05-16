@@ -2,6 +2,17 @@
 
 Guidance for AI coding agents working in this repository.
 
+## Agent Behavior
+
+These guidelines incorporate the coding-agent behavior notes:
+
+- Think before coding. State assumptions when they matter, surface unclear requirements, and ask before acting if multiple interpretations would lead to meaningfully different changes.
+- Prefer the simplest solution that fully satisfies the request. Do not add speculative features, configurability, abstractions, or defensive code for scenarios the task does not require.
+- Make surgical changes. Touch only files and lines that trace back to the user request, match existing style, and avoid opportunistic cleanup of unrelated code.
+- Clean up only the orphans created by your own changes, such as newly unused imports, variables, functions, scripts, or documentation references.
+- Define success criteria for non-trivial work, then verify against them with the narrowest useful command or test.
+- If a simpler or safer approach exists, say so. If the requested approach has a real downside, push back briefly and explain the tradeoff.
+
 ## Project Shape
 
 - `client/` contains the React frontend built with Vite.
@@ -31,6 +42,13 @@ For local setup details, see `LOCALHOST.md`. The app expects Node `>=20`.
 - Seed initial database data: `npm run server:db:init`
 - Seed database: `npm run server:db:seed`
 - Create an admin user: `npm run server:db:create-admin-user`
+
+## Database Schema Changes
+
+- When adding, removing, or changing tables, columns, indexes, constraints, sequences, or bootstrap rows, update the MSSQL SQL scripts under `database/mssql`.
+- Put schema/object changes in the appropriate `database/mssql/ddl/*.sql` file.
+- Put required seed or bootstrap data changes in the appropriate `database/mssql/dml/*.sql` file.
+- Keep server models, helpers, seeds, and SQL schema files in sync so a fresh MSSQL database has everything the runtime expects.
 
 ## Code Style
 
