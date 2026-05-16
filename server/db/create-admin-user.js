@@ -45,8 +45,6 @@ const input = async (fieldName, options = {}) => {
 
 (async () => {
   try {
-    await knex.migrate.latest();
-
     process.env.DEFAULT_ADMIN_EMAIL = await input('Email', {
       isRequired: true,
     });
