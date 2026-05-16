@@ -3,7 +3,6 @@
  * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
  */
 
-const path = require('path');
 const dotenv = require('dotenv');
 const _ = require('lodash');
 
@@ -17,10 +16,6 @@ dotenv.config({
 module.exports = {
   client: getKnexClient(),
   connection: buildKnexConnection(),
-  migrations: {
-    tableName: 'migration',
-    directory: path.join(__dirname, 'migrations'),
-  },
   seeds: {
     directory: path.join(__dirname, 'seeds'),
   },

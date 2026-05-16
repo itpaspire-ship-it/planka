@@ -30,7 +30,8 @@ This installs root, server, and client dependencies via the existing `postinstal
 npm run server:db:init
 ```
 
-This runs migrations and seeds the default admin from [server/.env](/Users/itpaspire/Documents/code/planka/server/.env).
+This seeds the default admin from [server/.env](/Users/itpaspire/Documents/code/planka/server/.env)
+after the database schema already exists.
 
 ## 4. Start the app
 
