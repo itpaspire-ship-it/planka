@@ -354,6 +354,40 @@ export const selectFilteredCardIdsForCurrentBoard = createSelector(
   },
 );
 
+export const selectGanttItemsForCurrentBoard = createSelector(
+  orm,
+  (state) => selectPath(state).boardId,
+  ({ Board }, id) => {
+    if (!id) {
+      return id;
+    }
+
+    const boardModel = Board.withId(id);
+
+    if (!boardModel) {
+      return boardModel;
+    }
+
+    return boardModel.getFilteredCardsModelArray().map((cardModel) => {
+      const tasks = cardModel
+        .getTaskListsQuerySet()
+        .toModelArray()
+        .flatMap((taskListModel) => taskListModel.getTasksQuerySet().toModelArray());
+
+      const primaryAssigneeTask = tasks.find((taskModel) => taskModel.user);
+      const primaryUser = primaryAssigneeTask
+        ? primaryAssigneeTask.user
+        : cardModel.users.toModelArray()[0];
+
+      return {
+        ...cardModel.ref,
+        tasks: tasks.map((taskModel) => taskModel.ref),
+        primaryUser: primaryUser && primaryUser.ref,
+      };
+    });
+  },
+);
+
 export const selectCustomFieldGroupIdsForCurrentBoard = createSelector(
   orm,
   (state) => selectPath(state).boardId,
@@ -486,6 +520,7 @@ export default {
   selectAvailableListsForCurrentBoard,
   selectCardsExceptCurrentForCurrentBoard,
   selectFilteredCardIdsForCurrentBoard,
+  selectGanttItemsForCurrentBoard,
   selectCustomFieldGroupIdsForCurrentBoard,
   selectCustomFieldGroupsForCurrentBoard,
   selectActivityIdsForCurrentBoard,

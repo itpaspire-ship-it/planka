@@ -1,0 +1,118 @@
+/*!
+ * Copyright (c) 2024 PLANKA Software GmbH
+ * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
+ */
+
+:global(#app) {
+  .chart {
+    background: #fff;
+    border-radius: 3px;
+    min-width: 720px;
+    padding: 12px;
+  }
+
+  :global(.gantt-task-closed) {
+    opacity: 0.56;
+  }
+
+  :global(.gantt-assignee-color-0) :global(.bar) {
+    fill: #4c78a8 !important;
+  }
+
+  :global(.gantt-assignee-color-0) :global(.bar-progress) {
+    fill: #2f5f8f !important;
+  }
+
+  :global(.gantt-assignee-color-1) :global(.bar) {
+    fill: #59a14f !important;
+  }
+
+  :global(.gantt-assignee-color-1) :global(.bar-progress) {
+    fill: #3f8738 !important;
+  }
+
+  :global(.gantt-assignee-color-2) :global(.bar) {
+    fill: #f28e2b !important;
+  }
+
+  :global(.gantt-assignee-color-2) :global(.bar-progress) {
+    fill: #cf6f16 !important;
+  }
+
+  :global(.gantt-assignee-color-3) :global(.bar) {
+    fill: #e15759 !important;
+  }
+
+  :global(.gantt-assignee-color-3) :global(.bar-progress) {
+    fill: #bf3d40 !important;
+  }
+
+  :global(.gantt-assignee-color-4) :global(.bar) {
+    fill: #b07aa1 !important;
+  }
+
+  :global(.gantt-assignee-color-4) :global(.bar-progress) {
+    fill: #8f5f82 !important;
+  }
+
+  :global(.gantt-assignee-color-5) :global(.bar) {
+    fill: #76b7b2 !important;
+  }
+
+  :global(.gantt-assignee-color-5) :global(.bar-progress) {
+    fill: #4f9b96 !important;
+  }
+
+  :global(.gantt-assignee-color-6) :global(.bar) {
+    fill: #edc948 !important;
+  }
+
+  :global(.gantt-assignee-color-6) :global(.bar-progress) {
+    fill: #caa72d !important;
+  }
+
+  :global(.gantt-assignee-color-7) :global(.bar) {
+    fill: #9c755f !important;
+  }
+
+  :global(.gantt-assignee-color-7) :global(.bar-progress) {
+    fill: #7b5947 !important;
+  }
+
+  .message {
+    align-items: center;
+    color: rgba(255, 255, 255, 0.88);
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 320px;
+    text-align: center;
+  }
+
+  .messageContent {
+    font-size: 15px;
+    line-height: 1.4;
+    margin-top: 6px;
+  }
+
+  .messageIcon {
+    color: rgba(255, 255, 255, 0.72);
+    margin-bottom: 18px;
+  }
+
+  .messageTitle {
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .wrapper {
+    overflow: auto;
+    padding: 0 20px 20px;
+    width: 100%;
+
+    @supports (-moz-appearance: none) {
+      scrollbar-color: rgba(0, 0, 0, 0.32) rgba(0, 0, 0, 0.08);
+    }
+  }
+}
