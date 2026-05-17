@@ -214,6 +214,7 @@ export default {
       fullKeyIsHiddenForSecurityReasons:
         'The full key is hidden for security reasons. Regenerate it to create a new one.',
       general: 'General',
+      gantt: 'Gantt',
       gradients: 'Gradients',
       grid: 'Grid',
       hideCompletedTasks: 'Hide completed tasks',
@@ -318,6 +319,7 @@ export default {
       subscribeToMyOwnCardsByDefault: 'Subscribe to my own cards by default',
       taskActions_title: 'Task Actions',
       taskAssignmentAndProjectCompletion: 'Task assignment and project completion.',
+      timelineDisplayOfCardsWithDueDates: 'Timeline display of cards with due dates.',
       taskListActions_title: 'Task List Actions',
       taskList_title: 'Task List',
       team: 'Team',

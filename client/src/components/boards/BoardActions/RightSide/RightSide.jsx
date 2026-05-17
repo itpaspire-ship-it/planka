@@ -32,7 +32,7 @@ const RightSide = React.memo(() => {
 
   const views = [BoardViews.GRID, BoardViews.LIST];
   if (board.context === BoardContexts.BOARD) {
-    views.unshift(BoardViews.KANBAN);
+    views.unshift(BoardViews.KANBAN, BoardViews.GANTT);
   }
 
   return (

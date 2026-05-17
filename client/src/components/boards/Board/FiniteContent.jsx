@@ -11,10 +11,12 @@ import entryActions from '../../../entry-actions';
 import { BoardViews } from '../../../constants/Enums';
 import GridView from './GridView';
 import ListView from './ListView';
+import GanttView from './GanttView';
 
 const FiniteContent = React.memo(() => {
   const board = useSelector(selectors.selectCurrentBoard);
   const cardIds = useSelector(selectors.selectFilteredCardIdsForCurrentBoard);
+  const ganttItems = useSelector(selectors.selectGanttItemsForCurrentBoard);
   const canAddCard = useSelector((state) => !!selectors.selectFirstKanbanListId(state));
 
   const dispatch = useDispatch();
@@ -40,12 +42,17 @@ const FiniteContent = React.memo(() => {
       View = ListView;
 
       break;
+    case BoardViews.GANTT:
+      View = GanttView;
+
+      break;
     default:
   }
 
   return (
     <View
       cardIds={cardIds}
+      ganttItems={ganttItems}
       onCardCreate={canAddCard ? handleCardCreate : undefined}
       onCardPaste={canAddCard ? handleCardPaste : undefined}
     />
