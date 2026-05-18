@@ -4,7 +4,7 @@ const http = require('http');
 
 const options = {
   host: 'localhost',
-  port: 1337,
+  port: 8080,
   timeout: 2000,
 };
 
