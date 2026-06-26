@@ -17,6 +17,7 @@ import { isListArchiveOrTrash } from '../../../utils/record-helpers';
 import { BoardMembershipRoles, CardTypes, ListTypes } from '../../../constants/Enums';
 import SelectCardTypeStep from '../SelectCardTypeStep';
 import EditDueDateStep from '../EditDueDateStep';
+import EditStartDateStep from '../EditStartDateStep';
 import EditStopwatchStep from '../EditStopwatchStep';
 import MoveCardStep from '../MoveCardStep';
 import ConfirmationStep from '../../common/ConfirmationStep';
@@ -29,6 +30,7 @@ const StepTypes = {
   MEMBERS: 'MEMBERS',
   LABELS: 'LABELS',
   EDIT_TYPE: 'EDIT_TYPE',
+  EDIT_START_DATE: 'EDIT_START_DATE',
   EDIT_DUE_DATE: 'EDIT_DUE_DATE',
   EDIT_STOPWATCH: 'EDIT_STOPWATCH',
   MOVE: 'MOVE',
@@ -121,7 +123,7 @@ const CardActionsStep = React.memo(({ cardId, defaultStep, onNameEdit, onClose }
     if (card.type === CardTypes.PROJECT && canUseMembers) menuItemsTotal += 1;
     if (canUseLabels) menuItemsTotal += 1;
     if (card.type !== CardTypes.PROJECT && canUseMembers) menuItemsTotal += 1;
-    if (card.type === CardTypes.PROJECT && canEditDueDate) menuItemsTotal += 1;
+    if (card.type === CardTypes.PROJECT && canEditDueDate) menuItemsTotal += 2;
     if (card.type === CardTypes.PROJECT && canEditStopwatch) menuItemsTotal += 1;
     if (canEditName) menuItemsTotal += 1;
     if (!board.limitCardTypesToDefaultOne && canEditType) menuItemsTotal += 1;
@@ -300,6 +302,10 @@ const CardActionsStep = React.memo(({ cardId, defaultStep, onNameEdit, onClose }
     openStep(StepTypes.EDIT_TYPE);
   }, [openStep]);
 
+  const handleEditStartDateClick = useCallback(() => {
+    openStep(StepTypes.EDIT_START_DATE);
+  }, [openStep]);
+
   const handleEditDueDateClick = useCallback(() => {
     openStep(StepTypes.EDIT_DUE_DATE);
   }, [openStep]);
@@ -353,6 +359,8 @@ const CardActionsStep = React.memo(({ cardId, defaultStep, onNameEdit, onClose }
             onClose={onClose}
           />
         );
+      case StepTypes.EDIT_START_DATE:
+        return <EditStartDateStep cardId={cardId} onBack={handleBack} onClose={onClose} />;
       case StepTypes.EDIT_DUE_DATE:
         return <EditDueDateStep cardId={cardId} onBack={handleBack} onClose={onClose} />;
       case StepTypes.EDIT_STOPWATCH:
@@ -416,6 +424,14 @@ const CardActionsStep = React.memo(({ cardId, defaultStep, onNameEdit, onClose }
             <Menu.Item className={styles.menuItem} onClick={handleMembersClick}>
               <Icon name="user outline" className={styles.menuItemIcon} />
               {t('common.members', {
+                context: 'title',
+              })}
+            </Menu.Item>
+          )}
+          {card.type === CardTypes.PROJECT && canEditDueDate && (
+            <Menu.Item className={styles.menuItem} onClick={handleEditStartDateClick}>
+              <Icon name="calendar alternate outline" className={styles.menuItemIcon} />
+              {t('action.editStartDate', {
                 context: 'title',
               })}
             </Menu.Item>
