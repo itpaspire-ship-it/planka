@@ -18,8 +18,6 @@ import Paths from '../../../constants/Paths';
 
 import styles from './GanttView.module.scss';
 
-const DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
-const GANTT_DURATION_IN_MILLISECONDS = 5 * DAY_IN_MILLISECONDS;
 const ASSIGNEE_COLORS_TOTAL = 8;
 
 const formatDate = (date) => {
@@ -52,7 +50,12 @@ const getAssigneeColorIndex = (userId) => {
 };
 
 const toGanttTask = (card) => {
-  if (!card || !card.dueDate) {
+  if (!card || !card.startDate || !card.dueDate) {
+    return null;
+  }
+
+  const startDate = new Date(card.startDate);
+  if (Number.isNaN(startDate.getTime())) {
     return null;
   }
 
@@ -60,8 +63,6 @@ const toGanttTask = (card) => {
   if (Number.isNaN(endDate.getTime())) {
     return null;
   }
-
-  const startDate = new Date(endDate.getTime() - GANTT_DURATION_IN_MILLISECONDS);
   const assigneeColorIndex = getAssigneeColorIndex(card.primaryUser && card.primaryUser.id);
   let customClass;
 
