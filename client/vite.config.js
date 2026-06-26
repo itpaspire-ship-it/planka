@@ -10,7 +10,7 @@ import svgr from 'vite-plugin-svgr';
 // eslint-disable-next-line import/no-unresolved
 import browserslistToEsbuild from 'browserslist-to-esbuild';
 
-const PROXY_TARGET = process.env.PROXY_TARGET || 'http://localhost:1337';
+const PROXY_TARGET = process.env.PROXY_TARGET || 'http://localhost:8080';
 
 // eslint-disable-next-line no-underscore-dangle
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

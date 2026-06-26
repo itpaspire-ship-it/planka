@@ -61,7 +61,7 @@ Run this once after a fresh checkout, or again any time you need to refresh the 
 ## URLs
 
 - Frontend: `http://localhost:3000`
-- API/backend: `http://localhost:1337`
+- API/backend: `http://localhost:8080`
 
 ## Default local login
 
@@ -71,4 +71,4 @@ Run this once after a fresh checkout, or again any time you need to refresh the 
 ## Notes
 
 - The repo expects Node `>=20`. Your machine is currently on Node `v25.9.0`, which may work, but if install/runtime issues appear, switch to Node 20 or 22 first.
-- The client proxies API calls to `http://localhost:1337`, so keep the backend running while using the frontend.
+- The client proxies API calls to `http://localhost:8080`, so keep the backend running while using the frontend.

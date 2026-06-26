@@ -1,4 +1,4 @@
-const BASE_URL = process.env.BASE_URL || 'http://localhost:1337';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:8080';
 
 const TIMEOUT = parseInt(process.env.TIMEOUT, 10) || 6000;
 
