@@ -79,6 +79,27 @@
     fill: #7b5947 !important;
   }
 
+  :global(.bar-wrapper) :global(.bar) {
+    fill: #f4f7f9 !important;
+    outline-color: #d7e0e7;
+  }
+
+  :global(.bar-wrapper) :global(.bar-progress) {
+    fill: rgba(44, 62, 80, 0.12) !important;
+  }
+
+  :global(.bar-wrapper) :global(.bar-img),
+  :global(.bar-wrapper) :global(.bar-label) {
+    pointer-events: none;
+  }
+
+  :global(.bar-wrapper) :global(.bar-label) {
+    fill: #0b3551;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
   .message {
     align-items: center;
     color: rgba(255, 255, 255, 0.88);

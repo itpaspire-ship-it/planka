@@ -373,11 +373,7 @@ export const selectGanttItemsForCurrentBoard = createSelector(
         .getTaskListsQuerySet()
         .toModelArray()
         .flatMap((taskListModel) => taskListModel.getTasksQuerySet().toModelArray());
-
-      const primaryAssigneeTask = tasks.find((taskModel) => taskModel.user);
-      const primaryUser = primaryAssigneeTask
-        ? primaryAssigneeTask.user
-        : cardModel.users.toModelArray()[0];
+      const primaryUser = cardModel.users.toModelArray()[0];
 
       return {
         ...cardModel.ref,

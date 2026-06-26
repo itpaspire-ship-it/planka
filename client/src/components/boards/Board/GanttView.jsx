@@ -20,6 +20,8 @@ import styles from './GanttView.module.scss';
 
 const ASSIGNEE_COLORS_TOTAL = 8;
 
+const AVATAR_COLORS = ['#2ecc71', '#3498db', '#8e44ad', '#e67e22', '#e74c3c', '#1abc9c', '#2c3e50'];
+
 const formatDate = (date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -49,6 +51,90 @@ const getAssigneeColorIndex = (userId) => {
   );
 };
 
+const getUserInitials = (name) => {
+  const words = name
+    .trim()
+    .split(/[\s-]+/)
+    .filter(Boolean);
+
+  if (words.length === 0) {
+    return '';
+  }
+
+  if (words.length === 1) {
+    return [...words[0]].slice(0, 2).join('');
+  }
+
+  return words
+    .slice(0, 2)
+    .map((word) => [...word][0])
+    .join('');
+};
+
+const escapeSvgText = (text) =>
+  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const getUserColor = (name) => {
+  let sum = 0;
+  for (let i = 0; i < name.length; i += 1) {
+    sum += name.charCodeAt(i);
+  }
+
+  return AVATAR_COLORS[sum % AVATAR_COLORS.length];
+};
+
+const getUserThumbnail = (user) => {
+  const avatarUrl = user.avatar ? user.avatar.thumbnailUrls.cover180 : user.gravatarUrl;
+
+  if (avatarUrl) {
+    return avatarUrl;
+  }
+
+  const color = getUserColor(user.name);
+  const initials = escapeSvgText(getUserInitials(user.name));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25"><rect width="25" height="25" rx="12.5" fill="${color}"/><text x="50%" y="50%" dy="0.35em" text-anchor="middle" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="700">${initials}</text></svg>`;
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+};
+
+const positionGanttLabels = (wrapperNode) => {
+  wrapperNode.querySelectorAll('.bar-wrapper').forEach((barWrapperNode) => {
+    const barNode = barWrapperNode.querySelector('.bar');
+    const labelNode = barWrapperNode.querySelector('.bar-label');
+
+    if (!barNode || !labelNode) {
+      return;
+    }
+
+    const imageNode = barWrapperNode.querySelector('.bar-img');
+    const imageMaskNode = barWrapperNode.querySelector('.img_mask');
+    const barX = Number(barNode.getAttribute('x'));
+    const barY = Number(barNode.getAttribute('y'));
+    const barHeight = Number(barNode.getAttribute('height'));
+    let labelX = barX + 10;
+
+    if (imageNode) {
+      const imageSize = Number(imageNode.getAttribute('width'));
+      const imageX = barX + 6;
+      const imageY = barY + (barHeight - imageSize) / 2;
+
+      imageNode.setAttribute('x', imageX);
+      imageNode.setAttribute('y', imageY);
+
+      if (imageMaskNode) {
+        imageMaskNode.setAttribute('x', imageX);
+        imageMaskNode.setAttribute('y', imageY);
+      }
+
+      labelX = imageX + imageSize + 10;
+    }
+
+    labelNode.classList.remove('big');
+    labelNode.setAttribute('x', labelX);
+    labelNode.setAttribute('y', barY + barHeight / 2);
+    labelNode.setAttribute('text-anchor', 'start');
+  });
+};
+
 const toGanttTask = (card) => {
   if (!card || !card.startDate || !card.dueDate) {
     return null;
@@ -76,7 +162,10 @@ const toGanttTask = (card) => {
 
   return {
     id: card.id,
-    name: card.primaryUser ? `${card.primaryUser.name} · ${card.name}` : card.name,
+    name: card.name,
+    ...(card.primaryUser && {
+      thumbnail: getUserThumbnail(card.primaryUser),
+    }),
     start: formatDate(startDate),
     end: formatDate(endDate),
     progress: getProgress(card),
@@ -102,6 +191,10 @@ const GanttView = React.memo(({ ganttItems }) => {
 
     wrapperNode.innerHTML = '';
 
+    const updateLabels = () => {
+      requestAnimationFrame(() => positionGanttLabels(wrapperNode));
+    };
+
     chartRef.current = new Gantt(wrapperNode, tasks, {
       view_mode: 'Week',
       view_mode_select: true,
@@ -113,7 +206,10 @@ const GanttView = React.memo(({ ganttItems }) => {
       on_click: (task) => {
         dispatch(push(Paths.CARDS.replace(':id', task.id)));
       },
+      on_view_change: updateLabels,
     });
+
+    updateLabels();
 
     return () => {
       chartRef.current = null;
