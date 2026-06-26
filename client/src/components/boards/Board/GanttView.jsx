@@ -198,6 +198,7 @@ const GanttView = React.memo(({ ganttItems }) => {
     chartRef.current = new Gantt(wrapperNode, tasks, {
       view_mode: 'Week',
       view_mode_select: true,
+      infinite_padding: false,
       readonly: true,
       readonly_dates: true,
       readonly_progress: true,
