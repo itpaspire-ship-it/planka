@@ -148,6 +148,7 @@ BEGIN
     [name] NVARCHAR(255) NOT NULL,
     [description] NVARCHAR(MAX) NULL,
     due_date DATETIME2(3) NULL,
+    start_date DATETIME2(3) NULL,
     stopwatch NVARCHAR(MAX) NULL,
     created_at DATETIME2(3) NULL,
     updated_at DATETIME2(3) NULL,

@@ -57,6 +57,11 @@
  *                 format: date-time
  *                 description: Due date for the card
  *                 example: 2024-01-01T00:00:00.000Z
+ *               startDate:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Start date for the card
+ *                 example: 2024-01-01T00:00:00.000Z
  *               isDueCompleted:
  *                 type: boolean
  *                 nullable: true
@@ -149,6 +154,10 @@ module.exports = {
       type: 'string',
       custom: isDueDate,
     },
+    startDate: {
+      type: 'string',
+      custom: isDueDate,
+    },
     isDueCompleted: {
       type: 'boolean',
       allowNull: true,
@@ -197,6 +206,7 @@ module.exports = {
       'name',
       'description',
       'dueDate',
+      'startDate',
       'isDueCompleted',
       'stopwatch',
     ]);

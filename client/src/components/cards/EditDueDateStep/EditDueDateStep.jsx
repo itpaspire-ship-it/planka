@@ -19,10 +19,10 @@ import parseTime from '../../../utils/parse-time';
 
 import styles from './EditDueDateStep.module.scss';
 
-const EditDueDateStep = React.memo(({ cardId, onBack, onClose }) => {
+const EditDueDateStep = React.memo(({ cardId, field, title, onBack, onClose }) => {
   const selectCardById = useMemo(() => selectors.makeSelectCardById(), []);
 
-  const defaultValue = useSelector((state) => selectCardById(state, cardId).dueDate);
+  const defaultValue = useSelector((state) => selectCardById(state, cardId)[field]);
 
   const dispatch = useDispatch();
   const [t] = useTranslation();
@@ -83,25 +83,36 @@ const EditDueDateStep = React.memo(({ cardId, onBack, onClose }) => {
     if (!defaultValue || value.getTime() !== defaultValue.getTime()) {
       dispatch(
         entryActions.updateCard(cardId, {
-          dueDate: value,
+          [field]: value,
         }),
       );
     }
 
     onClose();
-  }, [cardId, onClose, defaultValue, dispatch, t, data, dateFieldRef, timeFieldRef, nullableDate]);
+  }, [
+    cardId,
+    field,
+    onClose,
+    defaultValue,
+    dispatch,
+    t,
+    data,
+    dateFieldRef,
+    timeFieldRef,
+    nullableDate,
+  ]);
 
   const handleClearClick = useCallback(() => {
     if (defaultValue) {
       dispatch(
         entryActions.updateCard(cardId, {
-          dueDate: null,
+          [field]: null,
         }),
       );
     }
 
     onClose();
-  }, [cardId, onClose, defaultValue, dispatch]);
+  }, [cardId, field, onClose, defaultValue, dispatch]);
 
   const handleDatePickerChange = useCallback(
     (date) => {
@@ -128,7 +139,7 @@ const EditDueDateStep = React.memo(({ cardId, onBack, onClose }) => {
   return (
     <>
       <Popup.Header onBack={onBack}>
-        {t('common.editDueDate', {
+        {t(title, {
           context: 'title',
         })}
       </Popup.Header>
@@ -177,11 +188,15 @@ const EditDueDateStep = React.memo(({ cardId, onBack, onClose }) => {
 
 EditDueDateStep.propTypes = {
   cardId: PropTypes.string.isRequired,
+  field: PropTypes.string,
+  title: PropTypes.string,
   onBack: PropTypes.func,
   onClose: PropTypes.func.isRequired,
 };
 
 EditDueDateStep.defaultProps = {
+  field: 'dueDate',
+  title: 'common.editDueDate',
   onBack: undefined,
 };
 
