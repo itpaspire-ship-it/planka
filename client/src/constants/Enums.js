@@ -13,6 +13,15 @@ export const EditorModes = {
   MARKUP: 'markup',
 };
 
+export const AutoLogoutModes = {
+  NEVER: 'never',
+  MINUTES_2: '2m',
+  MINUTES_5: '5m',
+  MINUTES_10: '10m',
+  MINUTES_30: '30m',
+  HOURS_12: '12h',
+};
+
 export const HomeViews = {
   GRID_PROJECTS: 'gridProjects',
   GROUPED_PROJECTS: 'groupedProjects',
@@ -62,6 +71,12 @@ export const BoardContexts = {
 export const BoardMembershipRoles = {
   EDITOR: 'editor',
   VIEWER: 'viewer',
+};
+
+export const LabelFilterModes = {
+  NONE: 'none',
+  INCLUDE: 'include',
+  EXCLUDE: 'exclude',
 };
 
 export const ListTypes = {

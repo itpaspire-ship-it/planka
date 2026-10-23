@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Button, Icon, Table } from 'semantic-ui-react';
 import { useEventCallback } from '../../../../lib/hooks';
+import { Tooltip } from '../../../../lib/custom-ui';
 
 import selectors from '../../../../selectors';
 import entryActions from '../../../../entry-actions';
@@ -20,7 +21,7 @@ import UserAvatar from '../../../users/UserAvatar';
 
 import styles from './Item.module.scss';
 
-const Item = React.memo(({ id }) => {
+const Item = React.memo(({ id, onEdit }) => {
   const selectUserById = useMemo(() => selectors.makeSelectUserById(), []);
 
   const user = useSelector((state) => selectUserById(state, id));
@@ -47,18 +48,26 @@ const Item = React.memo(({ id }) => {
         <div className={styles.user}>
           <UserAvatar id={id} />
           <div>
-            {user.name}
+            {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events,
+                                          jsx-a11y/no-static-element-interactions */}
+            <span className={styles.nameLink} onClick={() => onEdit(id)}>
+              {user.name}
+            </span>
             {user.id === currentUserId && (
               <div className={styles.note}>{t('common.currentUser')}</div>
             )}
+            <div className={styles.mobileIdentity}>
+              {user.email}
+              {user.username && <div className={styles.note}>@{user.username}</div>}
+            </div>
           </div>
         </div>
       </Table.Cell>
-      <Table.Cell>
+      <Table.Cell className={styles.identityCell}>
         {user.email}
         {user.username && <div className={styles.note}>@{user.username}</div>}
       </Table.Cell>
-      <Table.Cell>
+      <Table.Cell className={styles.informationCell}>
         {user.phone && (
           <div className={styles.information}>
             <Icon name="phone" className={styles.icon} />
@@ -83,10 +92,12 @@ const Item = React.memo(({ id }) => {
         {t(`common.${user.role}`)}
       </Table.Cell>
       <Table.Cell textAlign="right">
-        <ActionsPopup userId={id}>
-          <Button className={styles.button}>
-            <Icon fitted name="pencil" />
-          </Button>
+        <ActionsPopup userId={id} onEdit={onEdit}>
+          <Tooltip content={t('common.userActions', { context: 'title' })}>
+            <Button className={styles.button}>
+              <Icon fitted name="pencil" />
+            </Button>
+          </Tooltip>
         </ActionsPopup>
       </Table.Cell>
     </Table.Row>
@@ -95,6 +106,7 @@ const Item = React.memo(({ id }) => {
 
 Item.propTypes = {
   id: PropTypes.string.isRequired,
+  onEdit: PropTypes.func.isRequired,
 };
 
 export default Item;

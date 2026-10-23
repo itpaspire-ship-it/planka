@@ -14,6 +14,7 @@ import { Input, Popup } from '../../../lib/custom-ui';
 
 import selectors from '../../../selectors';
 import entryActions from '../../../entry-actions';
+import actions from '../../../actions';
 import { useForm, useNestedRef } from '../../../hooks';
 import { isPassword } from '../../../utils/validator';
 
@@ -30,6 +31,11 @@ const createMessage = (error) => {
         type: 'error',
         content: 'common.invalidCurrentPassword',
       };
+    case 'Invalid password':
+      return {
+        type: 'error',
+        content: 'common.invalidPassword',
+      };
     default:
       return {
         type: 'warning',
@@ -42,12 +48,11 @@ const EditUserPasswordStep = React.memo(({ id, onBack, onClose }) => {
   const selectUserById = useMemo(() => selectors.makeSelectUserById(), []);
 
   const {
-    isSsoUser,
     passwordUpdateForm: { data: defaultData, isSubmitting, error },
   } = useSelector((state) => selectUserById(state, id));
 
   const withPasswordConfirmation = useSelector(
-    (state) => id === selectors.selectCurrentUserId(state) && !isSsoUser,
+    (state) => id === selectors.selectCurrentUserId(state),
   );
 
   const dispatch = useDispatch();
@@ -69,11 +74,13 @@ const EditUserPasswordStep = React.memo(({ id, onBack, onClose }) => {
   const handleSubmit = useCallback(() => {
     if (!data.password || !isPassword(data.password)) {
       passwordFieldRef.current.select();
+      dispatch(actions.updateUserPassword.failure(id, new Error('Invalid password')));
       return;
     }
 
     if (withPasswordConfirmation && !data.currentPassword) {
       currentPasswordFieldRef.current.focus();
+      dispatch(actions.updateUserPassword.failure(id, new Error('Invalid current password')));
       return;
     }
 
